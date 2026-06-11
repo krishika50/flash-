@@ -3,90 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash</title>
+    <title>Flash Chatbot</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-        h1 { font-size: 2.5rem; color: #f8fafc; margin-bottom: 5px; }
-        .desc { color: #94a3b8; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 1rem; }
-        #chatContainer { width: 100%; max-width: 600px; height: 450px; background: #1e293b; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-        .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 1rem; line-height: 1.5; word-wrap: break-word; }
-        .user-message { background-color: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai-message { background-color: #334155; color: #f8fafc; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .input-area { width: 100%; max-width: 600px; display: flex; gap: 10px; }
-        #userInput { flex: 1; padding: 14px; border: 1px solid #475569; border-radius: 12px; font-size: 1rem; outline: none; transition: border 0.2s; background: #1e293b; color: white; }
-        #userInput:focus { border-color: #3b82f6; }
-        #sendBtn { background-color: #3b82f6; color: white; border: none; padding: 0 24px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        #sendBtn:hover { background-color: #2563eb; }
+        /* Pure black background and clean layout */
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            background-color: #0a0a0a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-header {
+            background-color: #111111;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #ffcc00; /* Flash Theme Golden Color */
+            border-bottom: 1px solid #222222;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            background-color: #222222;
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .flash-message {
+            background-color: #ffcc00;
+            color: #000000;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            font-weight: 500;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            background-color: #111111;
+            border-top: 1px solid #222222;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            background-color: #222222;
+            border: 1px solid #333333;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        #userInput:focus {
+            border-color: #ffcc00;
+        }
+
+        #sendBtn {
+            background-color: #ffcc00;
+            color: #000000;
+            border: none;
+            padding: 0 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        #sendBtn:hover {
+            background-color: #e6b800;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Flash</h1>
-    <p class="desc">Your last-minute savior. Catching vibes and answers in a flash! ⚡✨</p>
-
-    <div id="chatContainer">
-        <div class="message ai-message">Hey! मैं Flash हूँ। बताओ आज क्या बवाल मचाना है? 😉</div>
-    </div>
-
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="Flash से कुछ भी पूछें..." onkeydown="if(event.key === 'Enter') sendMessage()">
-        <button id="sendBtn" onclick="sendMessage()">Send</button>
+    <div class="chat-container">
+        <div class="chat-header">⚡ FLASH</div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message flash-message">Flash: Hello! Main Flash chatbot hun. Aap mujhse koi bhi question pooch sakte hain!</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Type your question here..." onkeypress="handleKeyPress(event)">
+            <button id="sendBtn" onclick="askFlash()">Send</button>
+        </div>
     </div>
 
     <script>
-        // अपनी AQ वाली चाबी को यहाँ डालो ताकि सुरक्षा गार्ड एरर न दे
-        const key_start = "AQ"; 
-        const key_rest = "Ab8RN6L4hx1iNO2Eqw_GJ2zeYQtiyqNLE810fQMzoAybVZYyA";
-        const API_KEY = key_start + key_rest;
-        const g1 = "https://googleapis.com";
-        const g2 = "gemini-1.5-flash:generateContent?key=";
-        const API_URL = g1 + g2 + API_KEY;
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                askFlash();
+            }
+        }
 
-        async function sendMessage() {
+        function askFlash() {
             const inputField = document.getElementById("userInput");
-            const chatContainer = document.getElementById("chatContainer");
-            const userText = inputField.value.trim();
+            const question = inputField.value.trim().toLowerCase();
+            const chatMessages = document.getElementById("chatMessages");
 
-            if (!userText) return;
+            if (question === "") return;
 
-            const userDiv = document.createElement("div");
-            userDiv.className = "message user-message";
-            userDiv.innerText = userText;
-            chatContainer.appendChild(userDiv);
-            inputField.value = "";
+            // 1. User ka question screen par dikhana
+            chatMessages.innerHTML += `<div class="message user-message">${inputField.value}</div>`;
+            inputField.value = ""; // Input clear karna
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto scroll down
 
-            const aiDiv = document.createElement("div");
-            aiDiv.className = "message ai-message";
-            aiDiv.innerText = "Flash सोच रहा है... ⚡";
-            chatContainer.appendChild(aiDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            // 2. Flash ka automatic reply logic (Bina API ke)
+            let answer = "Flash: Hmm, mujhe iske baare mein seekhna padega. Kya aap kuch aur pooch sakte hain?";
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userText }] }]
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                    const aiResponse = data.candidates[0].content.parts[0].text;
-                    aiDiv.innerText = aiResponse;
-                } else {
-                    aiDiv.innerText = "कोई प्रतिक्रिया नहीं मिली। कृपया अपनी API Key जांचें।";
-                    console.log("API Error:", data);
-                }
-            } catch (error) {
-                console.error("Network Error:", error);
-                aiDiv.innerText = "कनेक्शन एरर! कृपया अपनी चाबी या इंटरनेट चेक करें।";
+            // Keywords matching answers
+            if (question.includes("hello") || question.includes("hi") || question.includes("hey")) {
+                answer = "Flash: Hello! Aaj main aapki kya madad kar sakta hun?";
+            } else if (question.includes("your name") || question.includes("tumhara naam") || question.includes("kaun ho")) {
+                answer = "Flash: Mera naam Flash hai! Main aapka ek super-fast smart assistant hun.";
+            } else if (question.includes("how are you") || question.includes("kaise ho")) {
+                answer = "Flash: Main bilkul theek aur fast hun! Aap bataiye aap kaise hain?";
+            } else if (question.includes("github")) {
+                answer = "Flash: GitHub ek amazing platform hai jahan aap bina kisi cost ke apni website free mein host kar sakte hain!";
+            } else if (question.includes("website")) {
+                answer = "Flash: Aap is waqt meri hi website par hain, jo bina kisi API key ke successfully kaam kar rahi hai!";
+            } else if (question.includes("bye") || question.includes("tata")) {
+                answer = "Flash: Goodbye! Alvida! Phir milenge!";
             }
 
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            // 3. Flash ka reply thodi der baad dikhana (Real AI feeling ke liye)
+            setTimeout(() => {
+                chatMessages.innerHTML += `<div class="message flash-message">${answer}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 400);
         }
     </script>
+
 </body>
 </html>
