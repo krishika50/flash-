@@ -1,176 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash Chatbot</title>
+    <title>Flash AI Chatbot</title>
     <style>
-        /* Pure black background and clean layout */
+        /* Pure Black Theme Styling */
         body {
             background-color: #000000;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
 
         .chat-container {
             width: 100%;
             max-width: 500px;
-            height: 80vh;
+            height: 90vh;
+            background-color: #0a0a0a;
+            border: 1px solid #222222;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
-            border: 1px solid #333333;
-            background-color: #0a0a0a;
-            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.03);
         }
 
         .chat-header {
             background-color: #111111;
             padding: 15px;
             text-align: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            letter-spacing: 2px;
-            color: #ffcc00; /* Flash Theme Golden Color */
+            letter-spacing: 1px;
             border-bottom: 1px solid #222222;
+            color: #00ffcc; /* Flash Highlight Color */
         }
 
-        .chat-messages {
+        /* Connecting Hugging Chat Interface */
+        .ai-frame {
+            width: 100%;
             flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        .user-message {
-            background-color: #222222;
-            color: #ffffff;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-
-        .flash-message {
-            background-color: #ffcc00;
-            color: #000000;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-            font-weight: 500;
-        }
-
-        .chat-input-area {
-            display: flex;
-            padding: 15px;
-            background-color: #111111;
-            border-top: 1px solid #222222;
-            gap: 10px;
-        }
-
-        #userInput {
-            flex: 1;
-            background-color: #222222;
-            border: 1px solid #333333;
-            color: #ffffff;
-            padding: 12px;
-            border-radius: 8px;
-            outline: none;
-            font-size: 1rem;
-        }
-
-        #userInput:focus {
-            border-color: #ffcc00;
-        }
-
-        #sendBtn {
-            background-color: #ffcc00;
-            color: #000000;
             border: none;
-            padding: 0 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
-
-        #sendBtn:hover {
-            background-color: #e6b800;
+            background-color: #000000;
         }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-        <div class="chat-header">⚡ FLASH</div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message flash-message">Flash: Hello! Main Flash chatbot hun. Aap mujhse koi bhi question pooch sakte hain!</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="Type your question here..." onkeypress="handleKeyPress(event)">
-            <button id="sendBtn" onclick="askFlash()">Send</button>
-        </div>
+        <div class="chat-header">⚡ FLASH AI</div>
+        <!-- यह मुफ़्त AI चैटबॉट बिना किसी API Key के काम करेगा -->
+        <iframe 
+            src="https://huggingface.co" 
+            class="ai-frame"
+            allow="clipboard-write">
+        </iframe>
     </div>
-
-    <script>
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                askFlash();
-            }
-        }
-
-        function askFlash() {
-            const inputField = document.getElementById("userInput");
-            const question = inputField.value.trim().toLowerCase();
-            const chatMessages = document.getElementById("chatMessages");
-
-            if (question === "") return;
-
-            // 1. User ka question screen par dikhana
-            chatMessages.innerHTML += `<div class="message user-message">${inputField.value}</div>`;
-            inputField.value = ""; // Input clear karna
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto scroll down
-
-            // 2. Flash ka automatic reply logic (Bina API ke)
-            let answer = "Flash: Hmm, mujhe iske baare mein seekhna padega. Kya aap kuch aur pooch sakte hain?";
-
-            // Keywords matching answers
-            if (question.includes("hello") || question.includes("hi") || question.includes("hey")) {
-                answer = "Flash: Hello! Aaj main aapki kya madad kar sakta hun?";
-            } else if (question.includes("your name") || question.includes("tumhara naam") || question.includes("kaun ho")) {
-                answer = "Flash: Mera naam Flash hai! Main aapka ek super-fast smart assistant hun.";
-            } else if (question.includes("how are you") || question.includes("kaise ho")) {
-                answer = "Flash: Main bilkul theek aur fast hun! Aap bataiye aap kaise hain?";
-            } else if (question.includes("github")) {
-                answer = "Flash: GitHub ek amazing platform hai jahan aap bina kisi cost ke apni website free mein host kar sakte hain!";
-            } else if (question.includes("website")) {
-                answer = "Flash: Aap is waqt meri hi website par hain, jo bina kisi API key ke successfully kaam kar rahi hai!";
-            } else if (question.includes("bye") || question.includes("tata")) {
-                answer = "Flash: Goodbye! Alvida! Phir milenge!";
-            }
-
-            // 3. Flash ka reply thodi der baad dikhana (Real AI feeling ke liye)
-            setTimeout(() => {
-                chatMessages.innerHTML += `<div class="message flash-message">${answer}</div>`;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 400);
-        }
-    </script>
 
 </body>
 </html>
