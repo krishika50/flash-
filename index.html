@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        h1 { font-size: 2.5rem; color: #1e293b; margin-bottom: 5px; }
+        .desc { color: #64748b; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 1rem; }
+        #chatContainer { width: 100%; max-width: 600px; height: 450px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 1rem; line-height: 1.5; word-wrap: break-word; }
+        .user-message { background-color: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-message { background-color: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .input-area { width: 100%; max-width: 600px; display: flex; gap: 10px; }
+        #userInput { flex: 1; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; outline: none; transition: border 0.2s; background: white; }
+        #userInput:focus { border-color: #3b82f6; }
+        #sendBtn { background-color: #3b82f6; color: white; border: none; padding: 0 24px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        #sendBtn:hover { background-color: #2563eb; }
+    </style>
+</head>
+<body>
+
+    <!-- आपका नया ब्रांड नाम -->
+    <h1>Flash</h1>
+    
+    <!-- आपका सिलेक्ट किया हुआ क्यूट Gen Z डिस्क्रिप्शन -->
+    <p class="desc">Your last-minute savior. Catching vibes and answers in a flash! ⚡✨</p>
+
+    <!-- चैट बॉक्स जहाँ बातचीत दिखेगी -->
+    <div id="chatContainer">
+        <div class="message ai-message">Hey! मैं Flash हूँ। बताओ आज क्या बवाल मचाना है? 😉</div>
+    </div>
+
+    <!-- सवाल पूछने वाला बॉक्स और सेंड बटन -->
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Flash से कुछ भी पूछें..." onkeydown="if(event.key === 'Enter') sendMessage()">
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // 1. यहाँ अपनी नई 'AQ' से शुरू होने वाली API Key कोट्स "" के बीच पेस्ट करें
+        const API_KEY = "अपनी_AQ_वाली_API_KEY_यहाँ_डालें"; 
+
+        // 2. नए Gemini-1.5-Flash मॉडल के लिए बिल्कुल सही एंडपॉइंट URL
+        const API_URL = "https://googleapis.com" + API_KEY;
+
+        async function sendMessage() {
+            const inputField = document.getElementById("userInput");
+            const chatContainer = document.getElementById("chatContainer");
+            const userText = inputField.value.trim();
+
+            if (!userText) return;
+
+            // 3. यूज़र का मैसेज स्क्रीन पर दिखाना
+            const userDiv = document.createElement("div");
+            userDiv.className = "message user-message";
+            userDiv.innerText = userText;
+            chatContainer.appendChild(userDiv);
+            inputField.value = "";
+
+            // 'सोच रहा हूँ...' वाला टेम्परेरी मैसेज दिखाना
+            const aiDiv = document.createElement("div");
+            aiDiv.className = "message ai-message";
+            aiDiv.innerText = "Flash सोच रहा है... ⚡";
+            chatContainer.appendChild(aiDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                // Google API को रिक्वेस्ट भेजना
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userText }] }]
+                    })
+                });
+
+                const data = await response.json();
+
+                // 4. नए AQ फॉर्मेट के अनुसार डेटा पासिंग (बिना किसी एरर के)
+                if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    aiDiv.innerText = aiResponse;
+                } else {
+                    aiDiv.innerText = "कोई प्रतिक्रिया नहीं मिली। कृपया अपनी API Key जांचें।";
+                    console.log("API Error Details:", data);
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                aiDiv.innerText = "कनेक्शन एरर! कृपया इंटरनेट कनेक्शन चेक करें।";
+            }
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
