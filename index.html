@@ -12,7 +12,7 @@
         }
 
         body {
-            background: #000000;   /* pure black background */
+            background: #000000;
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             height: 100vh;
             display: flex;
@@ -21,7 +21,6 @@
             padding: 1rem;
         }
 
-        /* main glass/card container */
         .chat-app {
             width: 100%;
             max-width: 1100px;
@@ -36,7 +35,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* header section: flash identity + api key control */
         .chat-header {
             padding: 1.2rem 1.8rem;
             background: rgba(0, 0, 0, 0.7);
@@ -72,7 +70,6 @@
             font-size: 0.7rem;
             font-weight: 500;
             color: #bbbbff;
-            backdrop-filter: blur(4px);
         }
 
         .api-config {
@@ -127,7 +124,6 @@
             border-radius: 30px;
         }
 
-        /* chat messages area */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -138,7 +134,6 @@
             scroll-behavior: smooth;
         }
 
-        /* custom scrollbar */
         .chat-messages::-webkit-scrollbar {
             width: 5px;
         }
@@ -152,7 +147,6 @@
             border-radius: 10px;
         }
 
-        /* message bubbles */
         .message {
             display: flex;
             flex-direction: column;
@@ -178,7 +172,6 @@
         }
 
         .user-message .bubble {
-            background: #1f2a3e;
             background: linear-gradient(135deg, #20293f, #131a2c);
             color: #f0f3ff;
             border-bottom-right-radius: 0.4rem;
@@ -190,7 +183,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: #eef2ff;
             border-bottom-left-radius: 0.4rem;
-            backdrop-filter: blur(2px);
         }
 
         .message-name {
@@ -205,7 +197,6 @@
             color: #b7adff;
         }
 
-        /* loading dot pulse */
         .typing-indicator {
             display: flex;
             gap: 5px;
@@ -246,7 +237,6 @@
             }
         }
 
-        /* input area — question box + send button */
         .input-area {
             background: #050507;
             padding: 1rem 1.5rem 1.4rem;
@@ -267,7 +257,6 @@
             color: #ffffff;
             outline: none;
             transition: all 0.2s;
-            resize: none;
         }
 
         .question-box:focus {
@@ -277,7 +266,6 @@
 
         .question-box::placeholder {
             color: #6a6a7e;
-            font-weight: 400;
         }
 
         .send-btn {
@@ -300,7 +288,6 @@
             background: linear-gradient(95deg, #3f3f6e, #2a2a55);
             transform: scale(0.97);
             border-color: #9898ff;
-            box-shadow: 0 0 6px rgba(100, 100, 255, 0.4);
         }
 
         .send-btn:active {
@@ -373,9 +360,7 @@
         </div>
     </div>
 
-    <div class="chat-messages" id="chatMessages">
-        <!-- welcome message will be inserted by js -->
-    </div>
+    <div class="chat-messages" id="chatMessages"></div>
 
     <div class="input-area">
         <input type="text" id="questionInput" class="question-box" placeholder="Ask anything, I'm Flash..." autocomplete="off">
@@ -390,7 +375,7 @@
 </div>
 
 <script>
-    // -------------------  CONFIGURATION -------------------
+    // ---------- FIXED: Clear button now aborts any pending request ----------
     const STORAGE_KEY = "flash_openai_key";
     const CONVERSATION_KEY = "flash_conversation_history";
     const SYSTEM_PROMPT = `You are Flash, a highly intelligent, warm, and creative AI assistant. 
@@ -399,8 +384,9 @@ You have a spark of wit and curiosity. Your name is Flash. You love helping peop
 Always respond in the same language as the user. Keep answers informative yet engaging.`;
 
     let currentApiKey = localStorage.getItem(STORAGE_KEY) || "";
-    let conversationHistory = [];   // stores { role: "user" | "assistant", content: string }
-    let isLoading = false;          // prevent concurrent requests
+    let conversationHistory = [];
+    let isLoading = false;
+    let currentAbortController = null;   // <-- to cancel ongoing fetch
 
     // DOM elements
     const chatContainer = document.getElementById("chatMessages");
@@ -411,7 +397,6 @@ Always respond in the same language as the user. Keep answers informative yet en
     const saveKeyBtn = document.getElementById("saveKeyBtn");
     const keyStatusSpan = document.getElementById("keyStatus");
 
-    // ---------- Helper: update key UI ----------
     function updateKeyStatusUI() {
         if (currentApiKey && currentApiKey.startsWith("sk-") && currentApiKey.length > 20) {
             keyStatusSpan.innerHTML = "🔑 key active";
@@ -425,7 +410,6 @@ Always respond in the same language as the user. Keep answers informative yet en
         }
     }
 
-    // load existing API key from local storage
     if (currentApiKey) {
         apiKeyInput.value = currentApiKey;
         updateKeyStatusUI();
@@ -433,28 +417,25 @@ Always respond in the same language as the user. Keep answers informative yet en
         updateKeyStatusUI();
     }
 
-    // Save API key handler
     saveKeyBtn.addEventListener("click", () => {
         let newKey = apiKeyInput.value.trim();
         if (newKey) {
-            if (newKey.startsWith("sk-") || newKey.length > 30) {  // basic validation
+            if (newKey.startsWith("sk-") || newKey.length > 30) {
                 currentApiKey = newKey;
                 localStorage.setItem(STORAGE_KEY, currentApiKey);
                 updateKeyStatusUI();
                 showSystemMessage("🔐 API key saved. You can now chat with Flash!", 3000);
             } else {
-                showSystemMessage("❌ Looks like the key format is invalid. It should start with 'sk-'", 3500);
+                showSystemMessage("❌ Key should start with 'sk-'", 3500);
             }
         } else {
-            // remove key if empty
             currentApiKey = "";
             localStorage.removeItem(STORAGE_KEY);
             updateKeyStatusUI();
-            showSystemMessage("🗝️ API key removed. Please add a valid OpenAI key to continue.", 3500);
+            showSystemMessage("🗝️ API key removed. Add a valid key to continue.", 3500);
         }
     });
 
-    // show ephemeral toast-like message in chat (system info)
     let tempTimeout = null;
     function showSystemMessage(text, duration = 3000) {
         const tempDiv = document.createElement("div");
@@ -470,13 +451,11 @@ Always respond in the same language as the user. Keep answers informative yet en
         }, duration);
     }
 
-    // save conversation to localStorage (optional persistence)
     function persistConversation() {
         try {
-            // keep last 100 messages to avoid huge storage
             const toStore = conversationHistory.slice(-100);
             localStorage.setItem(CONVERSATION_KEY, JSON.stringify(toStore));
-        } catch(e) { /* ignore */ }
+        } catch(e) {}
     }
 
     function loadStoredConversation() {
@@ -486,13 +465,11 @@ Always respond in the same language as the user. Keep answers informative yet en
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     conversationHistory = parsed;
-                    // render full conversation from history
                     renderMessagesFromHistory();
                     return;
                 }
-            } catch(e) { /* reset if corrupted */ }
+            } catch(e) {}
         }
-        // default: fresh start with welcome message
         resetConversation(true);
     }
 
@@ -506,13 +483,11 @@ Always respond in the same language as the user. Keep answers informative yet en
         persistConversation();
     }
 
-    // add message to both memory and UI
     function addMessageToHistory(role, content) {
         conversationHistory.push({ role, content });
         persistConversation();
     }
 
-    // render all messages from conversationHistory array
     function renderMessagesFromHistory() {
         chatContainer.innerHTML = "";
         for (let msg of conversationHistory) {
@@ -521,7 +496,6 @@ Always respond in the same language as the user. Keep answers informative yet en
         scrollToBottom();
     }
 
-    // append single bubble element without altering history
     function appendMessageElement(role, content) {
         const messageDiv = document.createElement("div");
         messageDiv.className = `message ${role === "user" ? "user-message" : "assistant-message"}`;
@@ -530,21 +504,18 @@ Always respond in the same language as the user. Keep answers informative yet en
         nameSpan.innerText = role === "user" ? "You" : "⚡ Flash";
         const bubbleDiv = document.createElement("div");
         bubbleDiv.className = "bubble";
-        // simple formatting: preserve line breaks, replace markdown-like bold?
-        bubbleDiv.innerText = content;   // plain text with natural line breaks
+        bubbleDiv.innerText = content;
         messageDiv.appendChild(nameSpan);
         messageDiv.appendChild(bubbleDiv);
         chatContainer.appendChild(messageDiv);
     }
 
-    // scroll to the bottom of chat
     function scrollToBottom() {
         setTimeout(() => {
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }, 50);
     }
 
-    // show loading indicator (three dots)
     let loadingElement = null;
     function showTypingIndicator() {
         if (loadingElement) return;
@@ -569,23 +540,14 @@ Always respond in the same language as the user. Keep answers informative yet en
         }
     }
 
-    // core function: call OpenAI API with full history + system prompt
-    async function sendMessageToGPT(userMessage) {
-        if (!currentApiKey || !currentApiKey.startsWith("sk-")) {
-            showSystemMessage("🔴 Please enter a valid OpenAI API key (starts with sk-) to talk with Flash.", 4000);
-            removeTypingIndicator();
-            isLoading = false;
-            return false;
-        }
-
-        // add user message to history and UI
+    // ------------------- FIXED: AbortController support -------------------
+    async function sendMessageToGPT(userMessage, signal) {
         addMessageToHistory("user", userMessage);
         appendMessageElement("user", userMessage);
         
-        // prepare payload
         const messagesForAPI = [
             { role: "system", content: SYSTEM_PROMPT },
-            ...conversationHistory.filter(m => m.role !== "system") // ensure only user/assistant from memory
+            ...conversationHistory.filter(m => m.role !== "system")
         ];
 
         try {
@@ -600,10 +562,8 @@ Always respond in the same language as the user. Keep answers informative yet en
                     messages: messagesForAPI,
                     temperature: 0.75,
                     max_tokens: 800,
-                    top_p: 1,
-                    frequency_penalty: 0.2,
-                    presence_penalty: 0.3,
-                })
+                }),
+                signal: signal   // pass abort signal
             });
 
             if (!response.ok) {
@@ -613,3 +573,113 @@ Always respond in the same language as the user. Keep answers informative yet en
                     errorDetail = errData.error?.message || errorDetail;
                 } catch(e) {}
                 throw new Error(`OpenAI error: ${errorDetail}`);
+            }
+
+            const data = await response.json();
+            const assistantReply = data.choices[0]?.message?.content?.trim();
+            if (!assistantReply) throw new Error("Empty response from AI.");
+
+            addMessageToHistory("assistant", assistantReply);
+            appendMessageElement("assistant", assistantReply);
+            scrollToBottom();
+            return true;
+
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                console.log("Request cancelled by clear");
+                return false;
+            }
+            let errorMsg = err.message;
+            if (errorMsg.includes("Incorrect API key") || errorMsg.includes("invalid_api_key")) {
+                errorMsg = "Invalid API key. Please check and re-save.";
+                currentApiKey = "";
+                localStorage.removeItem(STORAGE_KEY);
+                updateKeyStatusUI();
+                apiKeyInput.value = "";
+            } else if (errorMsg.includes("billing") || errorMsg.includes("quota")) {
+                errorMsg = "OpenAI quota exceeded. Check your plan.";
+            } else if (errorMsg.includes("rate limit")) {
+                errorMsg = "Rate limit reached. Please wait.";
+            }
+            const fallbackReply = `⚠️ Flash error: ${errorMsg}`;
+            addMessageToHistory("assistant", fallbackReply);
+            appendMessageElement("assistant", fallbackReply);
+            scrollToBottom();
+            return false;
+        }
+    }
+
+    async function handleSendMessage() {
+        if (isLoading) {
+            showSystemMessage("Flash is thinking... please wait.", 1500);
+            return;
+        }
+        const rawQuestion = questionInput.value.trim();
+        if (!rawQuestion) return;
+        if (!currentApiKey || !currentApiKey.startsWith("sk-")) {
+            showSystemMessage("✨ Please set your OpenAI API key first (top-right field).", 3500);
+            return;
+        }
+
+        isLoading = true;
+        questionInput.value = "";
+        questionInput.disabled = true;
+        sendButton.style.opacity = "0.6";
+        sendButton.style.pointerEvents = "none";
+        
+        showTypingIndicator();
+        
+        // Create a new AbortController for this request
+        currentAbortController = new AbortController();
+        await sendMessageToGPT(rawQuestion, currentAbortController.signal);
+        
+        currentAbortController = null;
+        removeTypingIndicator();
+        questionInput.disabled = false;
+        sendButton.style.opacity = "1";
+        sendButton.style.pointerEvents = "auto";
+        questionInput.focus();
+        isLoading = false;
+    }
+
+    // ------------------- FIXED: Clear button now aborts & resets safely -------------------
+    function clearConversation() {
+        // If there's an ongoing request, cancel it
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+        }
+        // Remove any leftover typing indicator
+        removeTypingIndicator();
+        // Reset loading flag
+        isLoading = false;
+        // Re-enable UI elements if they were disabled
+        questionInput.disabled = false;
+        sendButton.style.opacity = "1";
+        sendButton.style.pointerEvents = "auto";
+        // Clear the input field
+        questionInput.value = "";
+        // Reset conversation (keeps welcome message)
+        if (conversationHistory.length > 0 && !confirm("Clear all messages? This will reset the conversation.")) {
+            return;
+        }
+        resetConversation(true);
+        showSystemMessage("🧹 Conversation cleared. Fresh start with Flash!", 2000);
+    }
+
+    sendButton.addEventListener("click", handleSendMessage);
+    clearChatBtn.addEventListener("click", clearConversation);
+    questionInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    });
+
+    loadStoredConversation();
+    if (conversationHistory.length === 0) resetConversation(true);
+    updateKeyStatusUI();
+    questionInput.focus();
+</script>
+</body>
+</html>
