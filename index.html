@@ -1,81 +1,234 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash Chatbot</title>
+    <title>Flash AI Chatbot</title>
     <style>
+        /* Sleek Black Theme */
         body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
+            background-color: #0b0b0c;
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
-        #chatbox {
-            width: 300px;
-            height: 400px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            overflow-y: scroll;
-            background-color: #222;
+
+        /* Container Layout */
+        .chat-container {
+            width: 440px;
+            max-width: 95%;
+            height: 650px;
+            background-color: #161618;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #2a2a2e;
         }
-        #userInput {
-            width: 300px;
-            padding: 10px;
+
+        /* Flash Title Header */
+        .chat-header {
+            background-color: #1c1c1e;
+            padding: 18px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            border-bottom: 1px solid #2a2a2e;
+            color: #4e95ff;
+            letter-spacing: 1px;
         }
-        #sendButton {
-            padding: 10px;
+
+        /* Chat Display Window */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Chat Bubble Styles */
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #2b2b30;
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            background-color: #1f242e;
+            color: #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border-left: 3px solid #4e95ff;
+        }
+
+        .error-message {
+            background-color: #3a1c1c;
+            color: #ff8888;
+            align-self: center;
+            font-size: 0.85rem;
+            border: 1px solid #5a2c2c;
+        }
+
+        /* Bottom Input Field Box */
+        .input-area {
+            display: flex;
+            padding: 16px;
+            background-color: #1c1c1e;
+            border-top: 1px solid #2a2a2e;
+            gap: 12px;
+        }
+
+        #user-input {
+            flex: 1;
+            background-color: #252529;
+            border: 1px solid #3a3a3c;
+            color: #ffffff;
+            padding: 14px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        #user-input:focus {
+            border-color: #4e95ff;
+        }
+
+        /* Send Button Style */
+        #send-btn {
+            background-color: #4e95ff;
+            color: #ffffff;
+            border: none;
+            padding: 0 22px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        #send-btn:hover {
+            background-color: #357ae8;
+        }
+
+        #send-btn:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
 <body>
-    <div id="chatbox"></div>
-    <input type="text" id="userInput" placeholder="Type your message...">
-    <button id="sendButton">Send</button>
+
+    <div class="chat-container">
+        <div class="chat-header">⚡ FLASH AI</div>
+        <div class="chat-box" id="chat-box">
+            <div class="message bot-message">Hello! I am Flash. Ask me anything like GPT or Gemini!</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ask Flash something..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
 
     <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
 
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
+        // Prompt user for key securely inside the browser window so it's NEVER saved in your GitHub code
+        let API_KEY = localStorage.getItem('flash_gemini_key');
+        
+        if (!API_KEY) {
+            API_KEY = prompt("Please enter your Gemini API Key. (It stays locally in your browser and won't leak to GitHub):");
+            if (API_KEY) {
+                localStorage.setItem('flash_gemini_key', API_KEY.trim());
             }
-        });
+        }
 
         async function sendMessage() {
-            const message = userInput.value;
-            if (message.trim() === '') return;
+            const text = userInput.value.trim();
+            if (!text) return;
 
-            // Display user's message
-            chatbox.innerHTML += `<div>You: ${message}</div>`;
+            if (!API_KEY) {
+                appendMessage("Error: No API key provided. Refresh the page to enter it.", 'error-message');
+                return;
+            }
+
+            // 1. Show user message
+            appendMessage(text, 'user-message');
             userInput.value = '';
 
-            // Get bot response from API
-            const response = await getBotResponse(message);
-            chatbox.innerHTML += `<div>Flash: ${response}</div>`;
-            chatbox.scrollTop = chatbox.scrollHeight;  // Auto-scroll
+            // 2. Show thinking state
+            const thinkingId = appendMessage('Flash is typing...', 'bot-message');
+
+            // 3. Connect directly to official Google Gemini API Endpoint
+            const API_URL = `https://googleapis.com{API_KEY}`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: text }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove the thinking placeholder
+                document.getElementById(thinkingId).remove();
+
+                if (response.ok) {
+                    // Extract the text output correctly from Gemini's JSON structure
+                    const botReply = data.candidates[0].content.parts[0].text;
+                    appendMessage(botReply, 'bot-message');
+                } else {
+                    // Display exact API problem details clearly
+                    const errorDetails = data.error ? data.error.message : 'Unknown rejection.';
+                    appendMessage(`API Rejected: ${errorDetails} (Key might be blocked or invalid)`, 'error-message');
+                }
+
+            } catch (error) {
+                document.getElementById(thinkingId).remove();
+                appendMessage("Failed to talk to Gemini server. Check network connection.", 'error-message');
+                console.error(error);
+            }
         }
 
-        async function getBotResponse(message) {
-            const response = await fetch("YOUR_API_ENDPOINT", {  // Replace with your API endpoint
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer YOUR_API_KEY"  // Replace with your actual API key
-                },
-                body: JSON.stringify({ prompt: message, max_tokens: 100 })  // Adjust according to API requirements
-            });
-
-            const data = await response.json();
-            return data.choices[0].text.trim();  // Modify according to API response structure
+        function appendMessage(text, className) {
+            const msgDiv = document.createElement('div');
+            const uniqueId = 'msg-' + Date.now();
+            msgDiv.id = uniqueId;
+            msgDiv.classList.add('message', className);
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scrolls down
+            return uniqueId;
         }
+
+        // Action Listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>
