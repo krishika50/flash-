@@ -1,4 +1,4 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -73,6 +73,8 @@ html<!DOCTYPE html>
             font-size: 0.85rem;
             border: 1px solid #5a2c2c;
             text-align: center;
+            padding: 10px;
+            border-radius: 8px;
         }
         .input-area {
             display: flex;
@@ -102,13 +104,10 @@ html<!DOCTYPE html>
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
         #send-btn:hover {
             background-color: #357ae8;
-        }
-        #send-btn:active {
-            transform: scale(0.96);
         }
     </style>
 </head>
@@ -144,7 +143,7 @@ html<!DOCTYPE html>
             if (!text) return;
 
             if (!API_KEY) {
-                appendMessage("Error: No API key provided. Refresh to try again.", 'error-message');
+                appendMessage("Error: No API key saved. Refresh to enter it.", 'error-message');
                 return;
             }
 
@@ -153,36 +152,30 @@ html<!DOCTYPE html>
 
             const thinkingId = appendMessage('Flash is typing...', 'bot-message');
             
-            // Stable Production URL for Gemini 2.5 Flash
-            const API_URL = `https://googleapis.com{API_KEY}`;
+            // नया सर्वर रूट एंडपॉइंट जो सुरक्षा ब्लॉक को बाईपास करेगा
+            const API_URL = '/api/chat';
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                    body: JSON.stringify({ message: text, apiKey: API_KEY })
                 });
 
                 const data = await response.json();
+                
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
 
                 if (response.ok) {
-                    // FIXED JSON PATH: एरे इंडेक्स [0] को बिल्कुल सही तरीके से लागू कर दिया है
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                        const botReply = data.candidates[0].content.parts[0].text;
-                        appendMessage(botReply, 'bot-message');
-                    } else {
-                        appendMessage("Error: Structure mismatch in server response.", 'error-message');
-                    }
+                    appendMessage(data.reply, 'bot-message');
                 } else {
-                    const errorDetails = data.error ? data.error.message : 'API Key Setup rejection.';
-                    appendMessage(`API Rejected: ${errorDetails}`, 'error-message');
+                    appendMessage(`Server Error: ${data.error}`, 'error-message');
                 }
             } catch (error) {
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
-                appendMessage("Failed to talk to Gemini server. Please clear local storage or re-check the key.", 'error-message');
+                appendMessage("Connection error. Make sure your server is running on Vercel.", 'error-message');
                 console.error(error);
             }
         }
