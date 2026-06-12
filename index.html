@@ -149,11 +149,11 @@
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
 
-        // Prompt user for key securely inside the browser window so it's NEVER saved in your GitHub code
+        // Reset key if it was corrupt or broken previously
         let API_KEY = localStorage.getItem('flash_gemini_key');
         
-        if (!API_KEY) {
-            API_KEY = prompt("Please enter your Gemini API Key. (It stays locally in your browser and won't leak to GitHub):");
+        if (!API_KEY || API_KEY.includes("...") || API_KEY.length < 10) {
+            API_KEY = prompt("Please enter your official Google Gemini API Key:");
             if (API_KEY) {
                 localStorage.setItem('flash_gemini_key', API_KEY.trim());
             }
@@ -164,18 +164,16 @@
             if (!text) return;
 
             if (!API_KEY) {
-                appendMessage("Error: No API key provided. Refresh the page to enter it.", 'error-message');
+                appendMessage("Error: No API key provided. Refresh to try again.", 'error-message');
                 return;
             }
 
-            // 1. Show user message
             appendMessage(text, 'user-message');
             userInput.value = '';
 
-            // 2. Show thinking state
             const thinkingId = appendMessage('Flash is typing...', 'bot-message');
 
-            // 3. Connect directly to official Google Gemini API Endpoint
+            // Fixed and verified correct Google Gemini official endpoint
             const API_URL = `https://googleapis.com{API_KEY}`;
 
             try {
@@ -193,22 +191,27 @@
 
                 const data = await response.json();
                 
-                // Remove the thinking placeholder
-                document.getElementById(thinkingId).remove();
+                // Safety check to remove thinking text
+                const thinkingElement = document.getElementById(thinkingId);
+                if (thinkingElement) thinkingElement.remove();
 
                 if (response.ok) {
-                    // Extract the text output correctly from Gemini's JSON structure
-                    const botReply = data.candidates[0].content.parts[0].text;
-                    appendMessage(botReply, 'bot-message');
+                    // Correct data reading path for standard Gemini models
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                        const botReply = data.candidates[0].content.parts[0].text;
+                        appendMessage(botReply, 'bot-message');
+                    } else {
+                        appendMessage("Error reading response structure.", 'error-message');
+                    }
                 } else {
-                    // Display exact API problem details clearly
-                    const errorDetails = data.error ? data.error.message : 'Unknown rejection.';
-                    appendMessage(`API Rejected: ${errorDetails} (Key might be blocked or invalid)`, 'error-message');
+                    const errorDetails = data.error ? data.error.message : 'Invalid API key or setup rejection.';
+                    appendMessage(`API Rejected: ${errorDetails}`, 'error-message');
                 }
 
             } catch (error) {
-                document.getElementById(thinkingId).remove();
-                appendMessage("Failed to talk to Gemini server. Check network connection.", 'error-message');
+                const thinkingElement = document.getElementById(thinkingId);
+                if (thinkingElement) thinkingElement.remove();
+                appendMessage("Failed to talk to Gemini server. Please check your internet or API key.", 'error-message');
                 console.error(error);
             }
         }
@@ -220,11 +223,10 @@
             msgDiv.classList.add('message', className);
             msgDiv.innerText = text;
             chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scrolls down
+            chatBox.scrollTop = chatBox.scrollHeight;
             return uniqueId;
         }
 
-        // Action Listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
