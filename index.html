@@ -1,11 +1,10 @@
-!DOCTYPE html>
+html<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flash AI Chatbot</title>
     <style>
-        /* Sleek Black Theme */
         body {
             background-color: #0b0b0c;
             color: #f3f4f6;
@@ -16,8 +15,6 @@
             height: 100vh;
             margin: 0;
         }
-
-        /* Container Layout */
         .chat-container {
             width: 440px;
             max-width: 95%;
@@ -30,8 +27,6 @@
             overflow: hidden;
             border: 1px solid #2a2a2e;
         }
-
-        /* Flash Title Header */
         .chat-header {
             background-color: #1c1c1e;
             padding: 18px;
@@ -42,8 +37,6 @@
             color: #4e95ff;
             letter-spacing: 1px;
         }
-
-        /* Chat Display Window */
         .chat-box {
             flex: 1;
             padding: 20px;
@@ -52,8 +45,6 @@
             flex-direction: column;
             gap: 14px;
         }
-
-        /* Chat Bubble Styles */
         .message {
             max-width: 80%;
             padding: 12px 16px;
@@ -62,14 +53,12 @@
             line-height: 1.5;
             word-wrap: break-word;
         }
-
         .user-message {
             background-color: #2b2b30;
             color: #ffffff;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
-
         .bot-message {
             background-color: #1f242e;
             color: #e2e8f0;
@@ -77,16 +66,14 @@
             border-bottom-left-radius: 4px;
             border-left: 3px solid #4e95ff;
         }
-
         .error-message {
             background-color: #3a1c1c;
             color: #ff8888;
             align-self: center;
             font-size: 0.85rem;
             border: 1px solid #5a2c2c;
+            text-align: center;
         }
-
-        /* Bottom Input Field Box */
         .input-area {
             display: flex;
             padding: 16px;
@@ -94,7 +81,6 @@
             border-top: 1px solid #2a2a2e;
             gap: 12px;
         }
-
         #user-input {
             flex: 1;
             background-color: #252529;
@@ -105,12 +91,9 @@
             outline: none;
             font-size: 0.95rem;
         }
-
         #user-input:focus {
             border-color: #4e95ff;
         }
-
-        /* Send Button Style */
         #send-btn {
             background-color: #4e95ff;
             color: #ffffff;
@@ -121,11 +104,9 @@
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
-
         #send-btn:hover {
             background-color: #357ae8;
         }
-
         #send-btn:active {
             transform: scale(0.96);
         }
@@ -149,10 +130,9 @@
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
 
-        // Reset key if it was corrupt or broken previously
         let API_KEY = localStorage.getItem('flash_gemini_key');
         
-        if (!API_KEY || API_KEY.includes("...") || API_KEY.length < 10) {
+        if (!API_KEY) {
             API_KEY = prompt("Please enter your official Google Gemini API Key:");
             if (API_KEY) {
                 localStorage.setItem('flash_gemini_key', API_KEY.trim());
@@ -172,46 +152,37 @@
             userInput.value = '';
 
             const thinkingId = appendMessage('Flash is typing...', 'bot-message');
-
-            // Fixed and verified correct Google Gemini official endpoint
+            
+            // Stable Production URL for Gemini 2.5 Flash
             const API_URL = `https://googleapis.com{API_KEY}`;
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: text }]
-                        }]
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
                 });
 
                 const data = await response.json();
-                
-                // Safety check to remove thinking text
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
 
                 if (response.ok) {
-                    // Correct data reading path for standard Gemini models
-                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                    // FIXED JSON PATH: एरे इंडेक्स [0] को बिल्कुल सही तरीके से लागू कर दिया है
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
                         const botReply = data.candidates[0].content.parts[0].text;
                         appendMessage(botReply, 'bot-message');
                     } else {
-                        appendMessage("Error reading response structure.", 'error-message');
+                        appendMessage("Error: Structure mismatch in server response.", 'error-message');
                     }
                 } else {
-                    const errorDetails = data.error ? data.error.message : 'Invalid API key or setup rejection.';
+                    const errorDetails = data.error ? data.error.message : 'API Key Setup rejection.';
                     appendMessage(`API Rejected: ${errorDetails}`, 'error-message');
                 }
-
             } catch (error) {
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
-                appendMessage("Failed to talk to Gemini server. Please check your internet or API key.", 'error-message');
+                appendMessage("Failed to talk to Gemini server. Please clear local storage or re-check the key.", 'error-message');
                 console.error(error);
             }
         }
