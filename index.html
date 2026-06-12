@@ -110,6 +110,14 @@
             background-color: #357ae8;
         }
     </style>
+    <!-- यह गूगल का ऑफिशियल डायरेक्ट ब्राउज़र मॉड्यूल है जो बिना किसी सर्वर के सीधा काम करेगा -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run"
+        }
+      }
+    </script>
 </head>
 <body>
 
@@ -124,7 +132,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { GoogleGenAI } from "@google/generative-ai";
+
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -151,31 +161,28 @@
             userInput.value = '';
 
             const thinkingId = appendMessage('Flash is typing...', 'bot-message');
-            
-            // नया सर्वर रूट एंडपॉइंट जो सुरक्षा ब्लॉक को बाईपास करेगा
-            const API_URL = '/api/chat';
 
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, apiKey: API_KEY })
+                // सीधे ब्राउज़र से गूगल के नेटवर्क को सुरक्षित रूप से कॉल करना
+                const ai = new GoogleGenAI({ apiKey: API_KEY });
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: text,
                 });
 
-                const data = await response.json();
-                
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
 
-                if (response.ok) {
-                    appendMessage(data.reply, 'bot-message');
+                if (response && response.text) {
+                    appendMessage(response.text, 'bot-message');
                 } else {
-                    appendMessage(`Server Error: ${data.error}`, 'error-message');
+                    appendMessage("Error reading response.", 'error-message');
                 }
+
             } catch (error) {
                 const thinkingElement = document.getElementById(thinkingId);
                 if (thinkingElement) thinkingElement.remove();
-                appendMessage("Connection error. Make sure your server is running on Vercel.", 'error-message');
+                appendMessage("API Rejection. Please check your internet or re-paste the correct key.", 'error-message');
                 console.error(error);
             }
         }
