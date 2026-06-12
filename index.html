@@ -49,7 +49,7 @@
             }
         });
 
-        function sendMessage() {
+        async function sendMessage() {
             const message = userInput.value;
             if (message.trim() === '') return;
 
@@ -57,22 +57,24 @@
             chatbox.innerHTML += `<div>You: ${message}</div>`;
             userInput.value = '';
 
-            // Simulated bot response
-            setTimeout(() => {
-                const response = getBotResponse(message);
-                chatbox.innerHTML += `<div>Flash: ${response}</div>`;
-                chatbox.scrollTop = chatbox.scrollHeight;  // Auto-scroll
-            }, 500);
+            // Get bot response from API
+            const response = await getBotResponse(message);
+            chatbox.innerHTML += `<div>Flash: ${response}</div>`;
+            chatbox.scrollTop = chatbox.scrollHeight;  // Auto-scroll
         }
 
-        function getBotResponse(message) {
-            // Simple predefined responses
-            const responses = {
-                'hello': 'Hi there!',
-                'how are you?': 'I\'m just a bot, but I\'m doing great!',
-                'bye': 'Goodbye! Talk to you later.',
-            };
-            return responses[message.toLowerCase()] || 'I don\'t understand that.';
+        async function getBotResponse(message) {
+            const response = await fetch("YOUR_API_ENDPOINT", {  // Replace with your API endpoint
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer YOUR_API_KEY"  // Replace with your actual API key
+                },
+                body: JSON.stringify({ prompt: message, max_tokens: 100 })  // Adjust according to API requirements
+            });
+
+            const data = await response.json();
+            return data.choices[0].text.trim();  // Modify according to API response structure
         }
     </script>
 </body>
