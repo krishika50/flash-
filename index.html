@@ -5,202 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flash AI Chatbot</title>
     <style>
+        /* Black Background and Global Styles */
         body {
-            background-color: #0b0b0c;
-            color: #f3f4f6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0b0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
         }
+
+        /* Main Chat Container */
         .chat-container {
-            width: 440px;
-            max-width: 95%;
-            height: 650px;
-            background-color: #161618;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            width: 100%;
+            max-width: 600px;
+            height: 80vh;
+            background-color: #16161e;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid #2a2a2e;
+            border: 1px solid #2a2b36;
         }
+
+        /* Chat Header */
         .chat-header {
-            background-color: #1c1c1e;
-            padding: 18px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.3rem;
-            border-bottom: 1px solid #2a2a2e;
-            color: #4e95ff;
+            background-color: #1f1f2e;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid #2a2b36;
             letter-spacing: 1px;
         }
+
+        .chat-header span {
+            color: #ffaa00; /* Lightning gold accent for Flash */
+        }
+
+        /* Chat History Box */
         .chat-box {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 15px;
         }
+
+        /* Message Bubbles */
         .message {
-            max-width: 80%;
+            max-width: 75%;
             padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.98rem;
-            line-height: 1.5;
+            border-radius: 8px;
+            line-height: 1.4;
             word-wrap: break-word;
         }
+
         .user-message {
-            background-color: #2b2b30;
-            color: #ffffff;
+            background-color: #3b3b54;
             align-self: flex-end;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 2px;
         }
-        .bot-message {
-            background-color: #1f242e;
-            color: #e2e8f0;
+
+        .flash-message {
+            background-color: #222233;
             align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border-left: 3px solid #4e95ff;
+            border-bottom-left-radius: 2px;
+            border-left: 3px solid #ffaa00;
         }
-        .error-message {
-            background-color: #3a1c1c;
-            color: #ff8888;
-            align-self: center;
-            font-size: 0.85rem;
-            border: 1px solid #5a2c2c;
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        .input-area {
+
+        /* Input Bar Container */
+        .input-container {
             display: flex;
-            padding: 16px;
-            background-color: #1c1c1e;
-            border-top: 1px solid #2a2a2e;
-            gap: 12px;
+            padding: 15px;
+            background-color: #1f1f2e;
+            border-top: 1px solid #2a2b36;
+            gap: 10px;
         }
+
+        /* Chat Input Field */
         #user-input {
             flex: 1;
-            background-color: #252529;
-            border: 1px solid #3a3a3c;
+            background-color: #0b0b0f;
+            border: 1px solid #3b3b54;
             color: #ffffff;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
             outline: none;
-            font-size: 0.95rem;
         }
+
         #user-input:focus {
-            border-color: #4e95ff;
+            border-color: #ffaa00;
         }
+
+        /* Send Button */
         #send-btn {
-            background-color: #4e95ff;
-            color: #ffffff;
+            background-color: #ffaa00;
+            color: #0b0b0f;
             border: none;
-            padding: 0 22px;
-            border-radius: 8px;
-            font-weight: 600;
+            padding: 0 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
         }
+
         #send-btn:hover {
-            background-color: #357ae8;
+            background-color: #e09600;
         }
     </style>
-    <!-- यह गूगल का ऑफिशियल डायरेक्ट ब्राउज़र मॉड्यूल है जो बिना किसी सर्वर के सीधा काम करेगा -->
-    <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run"
-        }
-      }
-    </script>
 </head>
 <body>
 
     <div class="chat-container">
-        <div class="chat-header">⚡ FLASH AI</div>
+        <div class="chat-header">⚡ <span>FLASH</span> AI</div>
+        
+        <!-- Messages appear here -->
         <div class="chat-box" id="chat-box">
-            <div class="message bot-message">Hello! I am Flash. Ask me anything like GPT or Gemini!</div>
+            <div class="message flash-message">Hello! I am Flash. How can I help you today?</div>
         </div>
-        <div class="input-area">
+
+        <!-- Input Section -->
+        <div class="input-container">
             <input type="text" id="user-input" placeholder="Ask Flash something..." autocomplete="off">
-            <button id="send-btn">Send</button>
+            <button id="send-btn" onclick="sendMessage()">Send</button>
         </div>
     </div>
 
-    <script type="module">
-        import { GoogleGenAI } from "@google/generative-ai";
+    <script>
+        // Simulated Fast AI Knowledge Base
+        const replies = {
+            "hello": "Hello there! Speeding through data to assist you.",
+            "hi": "Hey! Flash here. What's on your mind?",
+            "how are you": "Running at lightning speed and ready to help!",
+            "who are you": "I am Flash, your instant AI assistant built for rapid answers.",
+            "what is your name": "My name is Flash!",
+            "help": "Tell me what you need, and I will solve it instantly.",
+            "default": "That is an interesting question! I am processing it at light speed."
+        };
 
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
 
-        let API_KEY = localStorage.getItem('flash_gemini_key');
-        
-        if (!API_KEY) {
-            API_KEY = prompt("Please enter your official Google Gemini API Key:");
-            if (API_KEY) {
-                localStorage.setItem('flash_gemini_key', API_KEY.trim());
-            }
-        }
-
-        async function sendMessage() {
+        // Handle Send Action
+        function sendMessage() {
             const text = userInput.value.trim();
-            if (!text) return;
+            if (text === "") return;
 
-            if (!API_KEY) {
-                appendMessage("Error: No API key saved. Refresh to enter it.", 'error-message');
-                return;
-            }
-
+            // 1. Append User Message
             appendMessage(text, 'user-message');
-            userInput.value = '';
+            userInput.value = "";
 
-            const thinkingId = appendMessage('Flash is typing...', 'bot-message');
-
-            try {
-                // सीधे ब्राउज़र से गूगल के नेटवर्क को सुरक्षित रूप से कॉल करना
-                const ai = new GoogleGenAI({ apiKey: API_KEY });
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: text,
-                });
-
-                const thinkingElement = document.getElementById(thinkingId);
-                if (thinkingElement) thinkingElement.remove();
-
-                if (response && response.text) {
-                    appendMessage(response.text, 'bot-message');
-                } else {
-                    appendMessage("Error reading response.", 'error-message');
-                }
-
-            } catch (error) {
-                const thinkingElement = document.getElementById(thinkingId);
-                if (thinkingElement) thinkingElement.remove();
-                appendMessage("API Rejection. Please check your internet or re-paste the correct key.", 'error-message');
-                console.error(error);
-            }
-        }
-
-        function appendMessage(text, className) {
-            const msgDiv = document.createElement('div');
-            const uniqueId = 'msg-' + Date.now();
-            msgDiv.id = uniqueId;
-            msgDiv.classList.add('message', className);
-            msgDiv.innerText = text;
-            chatBox.appendChild(msgDiv);
+            // 2. Scroll to bottom
             chatBox.scrollTop = chatBox.scrollHeight;
-            return uniqueId;
+
+            // 3. Generate instant Flash reply within 0.4 seconds
+            setTimeout(() => {
+                const cleanText = text.toLowerCase().replace(/[^\w\s]/gi, '');
+                const response = replies[cleanText] || replies["default"];
+                
+                appendMessage(response, 'flash-message');
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 400); 
         }
 
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+        // Helper to add chat bubble
+        function appendMessage(text, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerText = text;
+            chatBox.appendChild(messageDiv);
+        }
+
+        // Allow sending message with 'Enter' key
+        userInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
         });
     </script>
 </body>
