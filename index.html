@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flash AI Chatbot</title>
     <style>
-        /* Black Background and Global Styles */
+        /* Modern Dark Theme */
         body {
-            background-color: #0b0b0f;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0e12;
+            color: #f1f2f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -17,106 +17,114 @@
             height: 100vh;
         }
 
-        /* Main Chat Container */
+        /* Responsive Layout Container */
         .chat-container {
-            width: 100%;
-            max-width: 600px;
-            height: 80vh;
-            background-color: #16161e;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 550px;
+            height: 85vh;
+            background-color: #171923;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid #2a2b36;
+            border: 1px solid #2d3748;
         }
 
-        /* Chat Header */
+        /* Branding Header */
         .chat-header {
-            background-color: #1f1f2e;
-            padding: 15px 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-bottom: 1px solid #2a2b36;
-            letter-spacing: 1px;
+            background-color: #1a202c;
+            padding: 18px 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 1px solid #2d3748;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .chat-header span {
-            color: #ffaa00; /* Lightning gold accent for Flash */
+            color: #ecc94b; /* Flash Bolt Gold Accent */
         }
 
-        /* Chat History Box */
+        /* Message Display Screen */
         .chat-box {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
+            background-color: #171923;
         }
 
-        /* Message Bubbles */
+        /* Message Presentation */
         .message {
             max-width: 75%;
             padding: 12px 16px;
-            border-radius: 8px;
-            line-height: 1.4;
+            border-radius: 12px;
+            line-height: 1.5;
             word-wrap: break-word;
+            font-size: 0.95rem;
         }
 
         .user-message {
-            background-color: #3b3b54;
+            background-color: #3182ce;
+            color: #ffffff;
             align-self: flex-end;
             border-bottom-right-radius: 2px;
         }
 
         .flash-message {
-            background-color: #222233;
+            background-color: #2d3748;
+            color: #edf2f7;
             align-self: flex-start;
             border-bottom-left-radius: 2px;
-            border-left: 3px solid #ffaa00;
+            border-left: 4px solid #ecc94b;
         }
 
-        /* Input Bar Container */
+        /* Input Interaction Deck */
         .input-container {
             display: flex;
-            padding: 15px;
-            background-color: #1f1f2e;
-            border-top: 1px solid #2a2b36;
-            gap: 10px;
+            padding: 16px;
+            background-color: #1a202c;
+            border-top: 1px solid #2d3748;
+            gap: 12px;
         }
 
-        /* Chat Input Field */
+        /* Text Input Field */
         #user-input {
             flex: 1;
-            background-color: #0b0b0f;
-            border: 1px solid #3b3b54;
+            background-color: #0d0e12;
+            border: 1px solid #4a5568;
             color: #ffffff;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             font-size: 1rem;
             outline: none;
+            transition: border-color 0.2s;
         }
 
         #user-input:focus {
-            border-color: #ffaa00;
+            border-color: #ecc94b;
         }
 
-        /* Send Button */
+        /* Action Send Button */
         #send-btn {
-            background-color: #ffaa00;
-            color: #0b0b0f;
+            background-color: #ecc94b;
+            color: #1a202c;
             border: none;
-            padding: 0 20px;
+            padding: 0 24px;
             font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
+            font-weight: 700;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background-color 0.2s;
         }
 
         #send-btn:hover {
-            background-color: #e09600;
+            background-color: #d69e2e;
         }
     </style>
 </head>
@@ -125,67 +133,72 @@
     <div class="chat-container">
         <div class="chat-header">⚡ <span>FLASH</span> AI</div>
         
-        <!-- Messages appear here -->
         <div class="chat-box" id="chat-box">
-            <div class="message flash-message">Hello! I am Flash. How can I help you today?</div>
+            <div class="message flash-message">Hello! I am Flash. Ask me anything, and I will answer at lightning speed!</div>
         </div>
 
-        <!-- Input Section -->
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Ask Flash something..." autocomplete="off">
-            <button id="send-btn" onclick="sendMessage()">Send</button>
+            <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+            <button id="send-btn">Send</button>
         </div>
     </div>
 
     <script>
-        // Simulated Fast AI Knowledge Base
-        const replies = {
-            "hello": "Hello there! Speeding through data to assist you.",
-            "hi": "Hey! Flash here. What's on your mind?",
-            "how are you": "Running at lightning speed and ready to help!",
-            "who are you": "I am Flash, your instant AI assistant built for rapid answers.",
-            "what is your name": "My name is Flash!",
-            "help": "Tell me what you need, and I will solve it instantly.",
-            "default": "That is an interesting question! I am processing it at light speed."
+        // Pre-configured Intelligent Responses
+        const knowledgeBase = {
+            "hello": "Hello! Flash here, ready to run calculations for you.",
+            "hi": "Hi there! What can I generate for you instantly?",
+            "how are you": "Systems optimized and running at maximum processing capacity!",
+            "who are you": "I am Flash, your highly responsive custom AI companion.",
+            "what is your name": "My creators named me Flash because I reply in milliseconds.",
+            "help": "State your problem clearly, and I will parse it right away."
         };
 
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
 
-        // Handle Send Action
-        function sendMessage() {
-            const text = userInput.value.trim();
-            if (text === "") return;
+        // Main Core Execution Function
+        function processChat() {
+            const rawText = userInput.value;
+            const cleanText = rawText.trim();
+            
+            if (cleanText === "") return;
 
-            // 1. Append User Message
-            appendMessage(text, 'user-message');
-            userInput.value = "";
+            // 1. Instantly render User UI Bubble
+            appendBubble(cleanText, 'user-message');
+            userInput.value = ""; // Clear input immediately
+            autoScroll();
 
-            // 2. Scroll to bottom
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // 3. Generate instant Flash reply within 0.4 seconds
+            // 2. Compute and trigger simulated AI response
             setTimeout(() => {
-                const cleanText = text.toLowerCase().replace(/[^\w\s]/gi, '');
-                const response = replies[cleanText] || replies["default"];
+                const searchKey = cleanText.toLowerCase().replace(/[^\w\s]/gi, '');
+                const aiReply = knowledgeBase[searchKey] || "Processing complete. That is an excellent question! I am ready to process more logs.";
                 
-                appendMessage(response, 'flash-message');
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 400); 
+                appendBubble(aiReply, 'flash-message');
+                autoScroll();
+            }, 300); // 0.3 Second Delay
         }
 
-        // Helper to add chat bubble
-        function appendMessage(text, className) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            messageDiv.innerText = text;
-            chatBox.appendChild(messageDiv);
+        // Helper: Inject Elements safely into DOM
+        function appendBubble(text, computationalClass) {
+            const bubble = document.createElement('div');
+            bubble.className = `message ${computationalClass}`;
+            bubble.textContent = text; // Prevents HTML injection attacks
+            chatBox.appendChild(bubble);
         }
 
-        // Allow sending message with 'Enter' key
-        userInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                sendMessage();
+        // Helper: Maintenance View Window Scroll
+        function autoScroll() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Event Binding Layer (Guarantees execution)
+        sendBtn.addEventListener('click', processChat);
+
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                processChat();
             }
         });
     </script>
